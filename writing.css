@@ -1,0 +1,9 @@
+/* Book covers retain their complete artwork and natural proportions. */
+.book-feature,.book-secondary{align-items:start}
+.book-cover-link{display:block;width:100%;max-width:390px}
+.book-cover{display:block;width:100%;max-width:390px;height:auto;border:1px solid rgba(0,0,0,.12);box-shadow:10px 15px 28px rgba(38,30,25,.14)}
+.book-secondary .book-cover,.book-secondary .book-cover-link{max-width:300px;margin-inline:auto}
+.book-copy .book-description{font-size:1.08rem;line-height:1.65;margin:0 0 1.2rem}
+.book-copy .text-link{margin-top:.7rem}
+.book-availability{font-size:.94rem;color:#62645f;line-height:1.6;border-left:2px solid #a15338;padding-left:1rem;margin:1.5rem 0 0;max-width:32rem}
+@media(max-width:700px){.book-cover,.book-cover-link{max-width:300px;margin-inline:auto}.book-copy .book-description{font-size:1.05rem}.book-secondary .book-cover,.book-secondary .book-cover-link{max-width:260px}}

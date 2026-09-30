@@ -9,3 +9,37 @@ body.home{margin:0;background:#161616;color:#fff}
 .home-nav a:hover,.home-nav a:focus-visible{border-bottom-color:#fff}
 .home .skip:focus{color:#161616}
 @media(max-width:600px){.home-stage{background-position:50% center}.home-name{font-size:1.6rem}.home-nav{gap:0 .35rem;padding:.7rem .6rem}.home-nav a{font-size:.68rem;letter-spacing:.06em;padding:.65rem .35rem}}
+
+/* Centered landing navigation */
+.home-stage{justify-content:flex-end}
+.home-nav{display:flex;flex-direction:column;gap:.2rem;padding:1.1rem 1.5rem 1.25rem}
+.home-name{padding:0;font:400 clamp(1.5rem,2.4vw,2rem)/1.2 Georgia,'Times New Roman',serif;letter-spacing:.025em;text-align:center}
+.home-links{display:flex;justify-content:center;flex-wrap:wrap;gap:0 clamp(.5rem,2.5vw,2rem)}
+@media(max-width:600px){.home-nav{padding:.85rem .6rem 1rem}.home-name{font-size:1.55rem}}
+
+/* Writing page: restrained editorial layout */
+.writing-page{background:#f3f0e9}
+.writing-main{max-width:1130px;margin:auto;padding:clamp(3rem,6vw,6rem) clamp(1.2rem,4vw,3rem) 5rem}
+.writing-heading{margin:0 0 clamp(2rem,5vw,5rem)}
+.section-label{margin:0 0 .8rem;color:#7c4939;font:700 .7rem/1.4 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.16em}
+.writing-heading h1{font-size:clamp(3.7rem,8vw,7rem);margin:0;line-height:1}
+.book-feature,.book-secondary{display:grid;grid-template-columns:minmax(230px,.9fr) minmax(0,1.1fr);align-items:center;gap:clamp(2rem,7vw,7rem)}
+.book-art{aspect-ratio:2/3;max-width:390px;width:100%;padding:clamp(1.3rem,4vw,2.7rem);display:flex;flex-direction:column;box-shadow:14px 20px 32px rgba(38,30,25,.16),inset 5px 0 rgba(255,255,255,.12);border:1px solid rgba(0,0,0,.12)}
+.book-art-primary{background:#283039;color:#f2e7d6;justify-content:space-between}
+.book-art-secondary{background:#d8d1c4;color:#282b2a;justify-content:space-between}
+.book-art-title{font-size:clamp(2.6rem,6vw,5rem);line-height:.95;letter-spacing:-.06em;overflow-wrap:anywhere}
+.book-art-secondary .book-art-title{font-size:clamp(1.8rem,3.2vw,3rem);line-height:1.08;letter-spacing:-.04em}
+.book-art-title i{font-size:.58em;font-weight:400}
+.book-art-subtitle{font-size:1.1rem;line-height:1.3;max-width:12rem}
+.book-art-author{font:600 .75rem system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.book-copy h2{font-size:clamp(2.6rem,5vw,4.8rem);margin:0 0 .7rem;line-height:1.07}
+.book-secondary .book-copy h2{font-size:clamp(2.1rem,3.5vw,3.5rem)}
+.book-subtitle{font-size:1.45rem;margin:.1rem 0 1.6rem}
+.book-description{font-size:1.2rem;max-width:32rem;color:#555650;margin:0 0 2rem}
+.text-link{display:inline-block;font:700 .76rem/1.5 system-ui,sans-serif;letter-spacing:.075em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid #a15338;padding-bottom:.35rem}
+.text-link:hover{color:#a15338}
+.writing-rule{height:1px;background:#d7d2c8;margin:clamp(3.5rem,7vw,7rem) 0}
+.writing-endnote{text-align:center;max-width:690px;margin:0 auto}
+.writing-endnote blockquote{font-size:clamp(1.5rem,3vw,2.4rem);line-height:1.3;margin:0 0 .7rem}
+.writing-endnote p{color:#62645f;font-size:.95rem;margin:0 0 2.5rem}
+@media(max-width:700px){.book-feature,.book-secondary{grid-template-columns:1fr;gap:2.3rem}.book-art{max-width:320px;margin:0 auto}.book-copy{max-width:38rem}.writing-main{padding-bottom:3.5rem}}
