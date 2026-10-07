@@ -1,0 +1,3 @@
+Replace speaking.html and speaking.css in the root of your local repository. Merge the included assets folder into your existing assets folder. Keep your current style.css. Preview speaking.html locally, then commit and push in GitHub Desktop.
+
+Selected presenting1.png instead of presenting2.png for its more open gesture. Enhancements made with the built-in image generation tool: conservative shadow recovery, color balance, noise reduction and gentle clarity while preserving people and scene. AI restoration can interpret soft details; compare the enhanced photographs with your originals before publishing.
