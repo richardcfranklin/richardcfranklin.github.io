@@ -12,3 +12,45 @@
 .acting-hero-photo a:focus-visible{outline:3px solid #96513d;outline-offset:4px}
 @media(max-width:780px){.acting-hero{grid-template-columns:1fr}.acting-hero-photo{grid-row:auto;justify-self:start;max-width:240px}}
 @media(max-width:480px){.acting-hero-photo{max-width:205px}}
+
+/* Understated character portrait: credentials and reel lead the page. */
+.acting-hero{grid-template-columns:minmax(0,1fr) 190px;gap:clamp(1.5rem,3vw,3rem);align-items:center}
+.acting-hero-photo{width:100%;max-width:190px;justify-self:end}
+.acting-hero-photo img{width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center 28%;filter:none}
+.acting-hero-photo figcaption{text-align:left;font-size:.72rem;line-height:1.5;margin-top:.65rem}
+.acting-hero-photo figcaption a{color:#7b4636;text-underline-offset:3px}
+.acting-hero-photo figcaption a:focus-visible{outline:3px solid #96513d;outline-offset:3px}
+@media(max-width:780px){.acting-hero{grid-template-columns:minmax(0,1fr) 145px}.acting-hero-photo{grid-row:auto;max-width:145px}}
+@media(max-width:560px){.acting-hero{grid-template-columns:1fr}.acting-hero-photo{max-width:135px;justify-self:start}}
+
+/* Character portrait with more presence, while keeping the casting headshot link. */
+.acting-hero{grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:clamp(1.75rem,4vw,3.5rem)}
+.acting-hero-photo{max-width:320px}
+@media(max-width:780px){.acting-hero{grid-template-columns:minmax(0,1fr) minmax(0,255px)}.acting-hero-photo{max-width:255px}}
+@media(max-width:560px){.acting-hero{grid-template-columns:1fr}.acting-hero-photo{max-width:235px;justify-self:start}}
+
+/* Casting stills are clickable without changing their gallery layout. */
+.acting-gallery-link{display:block;cursor:zoom-in;overflow:hidden}
+.acting-gallery-link img{display:block;width:100%;height:100%;object-fit:cover}
+.acting-gallery-link:focus-visible{outline:3px solid #96513d;outline-offset:4px}
+
+/* Compact, responsive casting highlights beneath the introduction. */
+.acting-casting-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 0;
+  margin: 1.25rem 0 1.6rem;
+  color: var(--muted, #5e5b55);
+  font-size: .78rem;
+  line-height: 1.5;
+  letter-spacing: .015em;
+}
+.acting-casting-info span { display: inline; }
+.acting-casting-info span + span::before {
+  content: "/";
+  color: #a69d91;
+  margin: 0 .65rem;
+}
+@media (max-width: 560px) {
+  .acting-casting-info { font-size: .75rem; line-height: 1.7; }
+}
