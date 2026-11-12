@@ -1,4 +1,4 @@
-THE LAST AMEN — CHAPEL AFTER DARK v4
+THE LAST AMEN — CHAPEL AFTER DARK v4.1 — NAVIGATION FIX
 
 PLAY LOCALLY
   Open index.html in your browser. Keep style.css, game.js, and the entire
@@ -18,7 +18,7 @@ CONTROLS
   J — journal
   Touchscreen — directional pad and USE
 
-WHAT'S NEW IN V4
+WHAT'S INCLUDED
   - Layout based on the approved hand-drawn meetinghouse plan.
   - Separate East and West vestibules and foyers.
   - More classroom doors along both long corridors.
@@ -39,3 +39,14 @@ ART NOTES
 DEVELOPMENT STATUS
   JavaScript syntax checked. Please test door collision and puzzle flow
   in the browser; a full manual playthrough has not been completed.
+
+NAVIGATION FIX (v4.1)
+  - Removed double wall collisions blocking the inner doors between both
+    vestibules and their foyers. Entry vestibules now connect to the halls.
+  - Chapel interior tiles are explicitly non-walkable; chapel remains locked.
+  - Ran a full tile-based flood-fill reachability audit of both levels:
+    main floor: 2,528 reachable tiles, 1 connected region.
+    upstairs: 290 reachable tiles, 1 connected region.
+  - Checked 16 core interactions: all reachable from walkable positions.
+  - JavaScript syntax check passed. A live browser playthrough was not
+    possible in this execution environment.
