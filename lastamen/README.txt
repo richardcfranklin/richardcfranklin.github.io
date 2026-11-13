@@ -1,52 +1,18 @@
-THE LAST AMEN — CHAPEL AFTER DARK v4.1 — NAVIGATION FIX
+THE LAST AMEN — V5, USER TMX REBUILD
 
-PLAY LOCALLY
-  Open index.html in your browser. Keep style.css, game.js, and the entire
-  assets folder together in the same directory.
+Open index.html in a browser. For GitHub Pages, upload the whole folder contents.
 
-GITHUB PAGES
-  Upload index.html, style.css, game.js, and the assets folder into a new
-  folder called the-last-amen in your GitHub Pages repository. The address
-  will be https://richardcfranklin.github.io/the-last-amen/ if the repository
-  is deployed at that domain.
+The main floor renders EXACTLY from LastAmenScratchMap.tmx, supplied by you.
+The ground-floor collision is generated from the TMX Carpet and Walls layers:
+ floor tile = walkable; any wall tile = solid; unpainted floor = impassable.
+The upstairs landing is the separate map from the previous version.
+Your Tiled file is included in maps/LastAmenScratchMap_with_collision.tmx with local tileset paths.
 
-CONTROLS
-  WASD or arrow keys — move
-  E or Space — interact with nearby clues and chairs
-  Shift — sprint
-  M — full map of your current level
-  J — journal
-  Touchscreen — directional pad and USE
+Controls: WASD / arrow keys to move, E or Space to interact, M map, J journal.
+Five scripture challenges, ghosts, eight folding chairs and two endings are retained.
 
-WHAT'S INCLUDED
-  - Layout based on the approved hand-drawn meetinghouse plan.
-  - Separate East and West vestibules and foyers.
-  - More classroom doors along both long corridors.
-  - Vertical north-south basketball court, with hoops on north and south.
-  - Two north-hall stair interactions that load a separate upstairs level.
-  - Coin-covered round table upstairs.
-  - Bitmap character sprites, ghost sprites, furnishing graphics, and textures.
-  - Five scripture puzzles, eight-chair collection side quest, and secret ending.
-  - Chapel stays closed and inaccessible.
+TMX markers inferred from the icon art: Scripture note in gym=Genesis 19; Primary note=Babel; east hallway=3 Nephi 11; west side=1 Nephi 8; upstairs table=Matthew 26.
+The player's start is the east vestibule.
 
-ART NOTES
-  Assets are generated/cropped PNGs, not images pulled from third-party
-  copyrighted games or commercially restricted sprite-sheet listings.
-  The approved map illustration is a visual design reference; this browser
-  game uses the interactive tile layout and bitmap elements, not that entire
-  image as a walkable collision surface.
-
-DEVELOPMENT STATUS
-  JavaScript syntax checked. Please test door collision and puzzle flow
-  in the browser; a full manual playthrough has not been completed.
-
-NAVIGATION FIX (v4.1)
-  - Removed double wall collisions blocking the inner doors between both
-    vestibules and their foyers. Entry vestibules now connect to the halls.
-  - Chapel interior tiles are explicitly non-walkable; chapel remains locked.
-  - Ran a full tile-based flood-fill reachability audit of both levels:
-    main floor: 2,528 reachable tiles, 1 connected region.
-    upstairs: 290 reachable tiles, 1 connected region.
-  - Checked 16 core interactions: all reachable from walkable positions.
-  - JavaScript syntax check passed. A live browser playthrough was not
-    possible in this execution environment.
+IMPORTANT: map-data.js was exported from the TMX at build time. To apply future edits to the TMX, regenerate map-data.js; editing the TMX by itself will not live-update the browser game.
+The other files in assets/ are required. Keep them together on GitHub Pages.

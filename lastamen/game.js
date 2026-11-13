@@ -1,61 +1,41 @@
 (()=>{'use strict';
-const $=id=>document.getElementById(id), canvas=$('game'),ctx=canvas.getContext('2d');const TILE=32,WIDTH=66,HEIGHT=80;
-const art={};const files=['player_walk','ghost_walk','hall_carpet','class_carpet','gym_floor','carpet_texture','wood_texture','wall_plain','wall_pillar','door_plain','door_chapel_locked','door_bishop','stairs_up','fold_chair','chair_stack','scripture','note','coin_stack','fold_table','piano','sofa','side_table','painting1','painting2','hoop','shelf','key'];
+const $=id=>document.getElementById(id), canvas=$('game'),ctx=canvas.getContext('2d');const TILE=32;
+const art={};const files=['player_walk','ghost_walk','hall_carpet','class_carpet','gym_floor','carpet_texture','wood_texture','wall_plain','wall_pillar','door_plain','door_chapel_locked','door_bishop','stairs_up','fold_chair','chair_stack','scripture','note','coin_stack','fold_table','piano','sofa','side_table','painting1','painting2','hoop','shelf','key','tiled_floor_tiles','tiled_object_tiles'];
 for(const f of files){const im=new Image();im.src='assets/'+f+'.png';im.onload=()=>{sceneCache.main=null;sceneCache.upstairs=null};art[f]=im}
 function img(c,key,x,y,w,h,alpha=1){const im=art[key];if(im&&im.complete&&im.naturalWidth){c.save();c.globalAlpha*=alpha;c.drawImage(im,x,y,w,h);c.restore();return true}return false}
+
+const DATA=window.LAST_AMEN_MAP;
+const WIDTH=DATA.width,HEIGHT=DATA.height;
 const maps={main:makeMap(WIDTH,HEIGHT),upstairs:makeMap(30,18)},sceneCache={main:null,upstairs:null};
-function makeMap(w,h){return {w,h,walk:Array.from({length:h},()=>Array(w).fill(false)),wall:Array.from({length:h},()=>Array(w).fill(false)),zone:Array.from({length:h},()=>Array(w).fill('')),ground:Array.from({length:h},()=>Array(w).fill('carpet_texture'))}}
+function makeMap(w,h){return {w,h,walk:Array.from({length:h},()=>Array(w).fill(false)),wall:Array.from({length:h},()=>Array(w).fill(false)),zone:Array.from({length:h},()=>Array(w).fill('Hallway')),ground:Array.from({length:h},()=>Array(w).fill('carpet_texture'))}}
+function open(f,x,y){const m=maps[f];if(m.walk[y]?.[x])m.wall[y][x]=false}
 function room(f,x,y,w,h,name,ground='classroom_texture'){const m=maps[f];for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){if(xx<0||yy<0||xx>=m.w||yy>=m.h)continue;m.walk[yy][xx]=true;m.zone[yy][xx]=name;m.ground[yy][xx]=ground;if(xx===x||xx===x+w-1||yy===y||yy===y+h-1)m.wall[yy][xx]=true}}
-function hall(x,y,w,h,name='Hallway'){const m=maps.main;for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){if(xx<0||yy<0||xx>=m.w||yy>=m.h)continue;m.walk[yy][xx]=true;m.wall[yy][xx]=false;m.zone[yy][xx]=name;m.ground[yy][xx]='carpet_texture'}}
-function open(f,x,y){const m=maps[f];m.walk[y][x]=true;m.wall[y][x]=false}
-function outside(f,x,y){const m=maps[f];return x<0||y<0||x>=m.w||y>=m.h||!m.walk[y][x]||m.wall[y][x]}
-function wallRect(f,x,y,w,h){room(f,x,y,w,h,f==='main'?'Restricted area':'Upstairs');}
-// MAIN FLOOR — original hand-drawn layout with many doors and side halls.
-room('main',3,3,16,15,'Relief Society Room');room('main',47,3,16,15,'Primary Room');
-room('main',19,3,7,14,'Northwest Classrooms');room('main',40,3,7,14,'Northeast Classrooms');
-room('main',5,18,14,12,'Kitchen','hall_carpet');room('main',5,30,14,9,'West Classroom');
-room('main',47,18,15,11,'East Classroom');room('main',47,29,15,10,'East Classroom');
-room('main',5,49,14,10,'West Classroom');room('main',5,59,14,10,'West Classroom');
-room('main',47,49,15,10,'East Classroom');room('main',47,59,15,10,'East Classroom');
-room('main',11,39,8,10,'West Foyer');room('main',47,39,9,10,'East Foyer');
-room('main',3,42,8,7,'West Vestibule');room('main',56,42,8,7,'East Vestibule');
-room('main',47,69,16,10,"Bishop's Office");
-room('main',22,22,22,21,'Gym','wood_texture');
-room('main',22,43,22,26,'Chapel — Locked','classroom_texture');
-// Restore continuous walkways after drawing rooms.
-hall(19,17,28,5,'North Hallway');hall(19,17,3,56,'West Hallway');hall(44,17,3,56,'East Hallway');hall(19,69,28,4,'South Hallway');
-// Door openings to the two long hallways; 11 classroom entrances + other rooms.
-for(const [x,y] of [[22,15],[22,16],[43,15],[43,16],[18,16],[18,17],[47,16],[47,17]])open('main',x,y);
-for(const [x,y] of [[18,15],[47,15],[18,24],[18,34],[18,53],[18,63],[47,24],[47,33],[47,53],[47,63],[18,44],[47,44],[10,45],[56,45],[47,71]])open('main',x,y);
-// Gym doors from corridors, chapel stays inaccessible.
-for(const [x,y] of [[22,27],[22,36],[43,27],[43,36]])open('main',x,y);
-// Vestibule connections need openings through BOTH adjoining wall tiles.
-// Previously only the vestibule-side wall was opened, trapping the player inside.
-// West: vestibule x3–10 -> foyer x11–18. East: foyer x47–55 -> vestibule x56–63.
-for(const x of [10,11,55,56])open('main',x,45);
-// Exterior-facing door tiles are interactive, but do not lead outside until the escape puzzle.
-open('main',3,45);open('main',63,45);
-// The chapel is deliberately non-traversable, including its interior floor tiles.
-// Its doors remain inspectable from the adjacent hallways via E.
-for(let y=43;y<69;y++)for(let x=22;x<44;x++)maps.main.walk[y][x]=false;
-// Upstairs is physically separate, not overlaid on the main floor.
-room('upstairs',2,2,26,14,'Upstairs Landing','classroom_texture');open('upstairs',6,15);open('upstairs',23,15);
-const doors=[{f:'main',x:3,y:45,name:'West exterior doors',type:'exit'}, {f:'main',x:63,y:45,name:'East exterior doors',type:'exit'},{f:'main',x:22,y:55,name:'Chapel doors — closed',type:'chapel'},{f:'main',x:43,y:55,name:'Chapel doors — closed',type:'chapel'},{f:'main',x:47,y:71,name:"Bishop's office",type:'bishop'}];
-// Furniture / decoration is bitmap-based. Objects intentionally leave walkways open.
-const deco={main:[
-['fold_table',8,9,3,2],['fold_chair',6,11,1.5,2],['fold_chair',15,11,1.5,2],
-['fold_table',50,8,3,2],['fold_chair',49,12,1.5,2],['fold_chair',57,12,1.5,2],['piano',58,5,3,2.8],
-['shelf',6,19,2.5,2],['fold_table',9,24,3,2],['fold_table',9,34,2,1.5],['fold_table',51,22,2,1.4],
-['fold_table',51,34,2,1.4],['fold_table',7,55,2.6,1.5],['fold_table',51,55,2.6,1.5],['fold_table',7,64,2.6,1.5],['fold_table',51,64,2.6,1.5],
-['sofa',12,41,4,2],['side_table',15,45,1.4,1.3],['sofa',49,41,4,2],['side_table',50,45,1.3,1.3],
-['hoop',30,22,5,3],['hoop',30,39,5,3],['painting1',9,4,3,2],['painting2',54,4,3,2],
-['side_table',54,71,3,2],['shelf',59,71,2,3],['painting1',51,70,2.5,1.5],['chair_stack',24,69,2.5,2.7]],
- upstairs:[['shelf',3,3,2.3,3],['shelf',25,3,2.3,3],['fold_chair',10,9,2,2.7],['fold_chair',19,9,2,2.7],['stairs_up',3,11,4,4],['stairs_up',22,11,4,4]]};
+for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++){
+ const i=y*WIDTH+x, f=DATA.floors[i],wall=DATA.walls[i];
+ maps.main.walk[y][x]=f>0;
+ maps.main.wall[y][x]=wall>0;
+ maps.main.ground[y][x]=f===5?'wood_texture':'carpet_texture';
+ let z='Hallway';
+ if(f===5)z='Gym';
+ else if(x>=60&&y<=19)z='Primary Room';
+ else if(x<=18&&y<=19)z='Relief Society Room';
+ else if(x<14&&y>=24&&y<46)z='Kitchen / West Classroom';
+ else if(x>=63&&y>89)z="Bishop's Office";
+ else if(x<=12&&y>=53&&y<67)z='West Foyer / Vestibule';
+ else if(x>=62&&y>=53&&y<68)z='East Foyer / Vestibule';
+ else if(x>=24&&x<=51&&y>=62&&y<=82)z='Chapel — Locked';
+ else if(y<32&&x>=21&&x<=53)z='North Hallway';
+ maps.main.zone[y][x]=z;
+}
+// Upstairs stays separate from the supplied ground-floor TMX.
+room('upstairs',2,2,26,14,'Upstairs Landing');open('upstairs',6,15);open('upstairs',23,15);
+const doors=[];
+const deco={main:[],upstairs:[['shelf',3,3,2.3,3],['shelf',25,3,2.3,3],['fold_chair',10,9,2,2.7],['fold_chair',19,9,2,2.7],['stairs_up',3,11,4,4],['stairs_up',22,11,4,4]]};
 // Props use nearby E interaction, and spatially distinct upstairs state.
 const props=[];function prop(f,x,y,id,label,action,key){props.push({f,x,y,id,label,action,key})}
 const story=['Genesis 19 — Lot’s wife','Genesis 11 / Ether 1 — Babel','Matthew 26 — Thirty silver coins','3 Nephi 11 — The quiet voice','1 Nephi 8 — Hold fast'];
 const done=new Set(),found=new Set(),notes=['11:41 PM · We went back to the church. Someone is still here.'];let carrying=0,stored=0,readBishop=false;
-const player={f:'main',x:7.5*TILE,y:45.5*TILE,face:'right',walk:0};let mapOpen=false,modalOpen=false,ended=false,ghosts=[],ghostTimer=0,lotRun=false,lotTriggered=false,last=0,elapsed=0,flash=0,shake=0,sound=true,audioCtx=null;
+const player={f:'main',x:72.5*TILE,y:61.5*TILE,face:'left',walk:0};let mapOpen=false,modalOpen=false,ended=false,ghosts=[],ghostTimer=0,lotRun=false,lotTriggered=false,last=0,elapsed=0,flash=0,shake=0,sound=true,audioCtx=null;
 function addNote(s){if(!notes.includes(s))notes.unshift(s);ui()}
 function chime(freq=440,t=.12,type='sine',vol=.024){if(!sound)return;try{audioCtx??=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+t);o.stop(audioCtx.currentTime+t)}catch{}}
 let noticeTimeout;function notice(txt){$('banner').textContent=txt;$('banner').classList.add('on');clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>$('banner').classList.remove('on'),3700)}
@@ -67,16 +47,30 @@ function simple(title,ref,text){dialog(title,ref,'<p>'+text+'</p>')}
 function success(id,msg){done.add(id);close();addNote(msg);chime(740,.25,'triangle');flash=.38;notice('SCRIPTURE CHALLENGE COMPLETE — '+(done.size)+'/5');ui()}
 function fail(msg){feedback(msg);shake=7;flash=.6;chime(115,.36,'sawtooth',.025)}
 function transition(dest,x,y){player.f=dest;player.x=x*TILE;player.y=y*TILE;ghosts=[];flash=.65;close();notice(dest==='upstairs'?'The hallway fades. You emerge on the upstairs landing.':'The landing fades, and you return to the hallway.');ui()}
-prop('main',20,20,'weststairs','Stairs to upstairs landing',()=>transition('upstairs',6,13),'stairs');prop('main',45,20,'eaststairs','Stairs to upstairs landing',()=>transition('upstairs',23,13),'stairs');
-prop('upstairs',6,15,'westdown','West stairs down',()=>transition('main',20,20),'stairs');prop('upstairs',23,15,'eastdown','East stairs down',()=>transition('main',45,20),'stairs');
-prop('main',30,29,'lotbook','Open Bible · Genesis 19',lotPuzzle,'scripture');prop('main',33,34,'basketball','Bouncing basketball',basketball,'ball');
-prop('main',55,8,'babel','Primary whiteboard · BABEL',babelPuzzle,'note');prop('main',58,13,'ether','Spanish Book of Mormon',()=>simple('The Brother of Jared','ETHER 1:34–37','Jared asked his brother to cry unto the Lord, so their language would not be confounded. The handwritten arrow points RIGHT.'),'scripture');
-prop('upstairs',15,7,'silver','Round table with silver coins',silverPuzzle,'coins');prop('upstairs',15,11,'voice','Open Book of Mormon · 3 Nephi 11',voicePuzzle,'scripture');
-prop('main',15,46,'iron','Iron rod sketch',rodPuzzle,'note');prop('main',56,74,'bishop','Bishop’s desk',bishopPuzzle,'note');
-prop('main',25,70,'closet','Folding-chair storage',chairStorage,'stack');
-prop('main',5,45,'exitwest','West exit doors',exitPuzzle,'door');prop('main',61,45,'exiteast','East exit doors',exitPuzzle,'door');
-prop('main',22,55,'locked','Chapel doors (closed)',()=>simple('Chapel closed','RESPECTFULLY INACCESSIBLE','The chapel remains locked. The mystery takes place in the other rooms.'),'door');
-const chairs=[['primary',51,15],['rs',8,14],['west1',12,34],['west2',12,55],['west3',12,65],['east1',54,25],['east2',55,55],['east3',55,65]];
+
+// Clues are assigned to the exact object icons the user positioned in Tiled.
+// Positions below are centered in authored TMX object rectangles (local 32px coordinates).
+const xobj=id=>{const q=DATA.objects.find(o=>o.id===id);return q?{x:q.x+q.w/2,y:q.y+q.h/2}:null};
+function fromObject(id,key,label,action,f='main'){const q=xobj(id);if(!q)return;prop(f,q.x-.5,q.y-.5,key,label,action,'existing');}
+fromObject(57,'weststairs','West hallway stairs — upstairs landing',()=>transition('upstairs',6,13));
+fromObject(58,'eaststairs','East hallway stairs — upstairs landing',()=>transition('upstairs',23,13));
+prop('upstairs',6,15,'westdown','West stairs down',()=>transition('main',23.1,31.2),'stairs');
+prop('upstairs',23,15,'eastdown','East stairs down',()=>transition('main',50.1,31.2),'stairs');
+fromObject(70,'lotbook','Genesis 19 · Warning in the gym',lotPuzzle);
+// bouncing basketball near center court, separate from the scripture note
+prop('main',38,44,'basketball','Bouncing basketball',basketball,'ball');
+fromObject(69,'babel','Primary Room · BABEL',babelPuzzle);
+fromObject(73,'ether','Book of Mormon · Ether 1',()=>simple('The Brother of Jared','ETHER 1:34–37','Jared asked his brother to cry unto the Lord, so their language would not be confounded. The handwritten arrow points RIGHT.'));
+prop('upstairs',15,7,'silver','Thirty silver coins',silverPuzzle,'coins');
+fromObject(68,'voice','3 Nephi 11 · The quiet voice',voicePuzzle);
+fromObject(71,'iron','1 Nephi 8 · Hold fast',rodPuzzle);
+fromObject(72,'bishop','Bishop’s desk',bishopPuzzle);
+fromObject(56,'closet','Folding chair storage',chairStorage);
+// Exits and doors are embedded in the Tiled artwork. Interaction points sit on them.
+prop('main',2,61,'exitwest','West exit doors',exitPuzzle,'existing');
+prop('main',73,61,'exiteast','East exit doors',exitPuzzle,'existing');
+prop('main',22,68,'locked','Chapel doors — respectfully locked',()=>simple('Chapel closed','RESPECTFULLY INACCESSIBLE','The chapel remains locked. The mystery takes place in the other rooms.'),'existing');
+const chairs=[['primary1',68,11],['primary2',68,26],['rs1',8,13],['west1',8,37],['west2',8,75],['west3',8,82],['east1',68,74],['east2',68,83]];
 for(const [id,x,y] of chairs)prop('main',x,y,'chair-'+id,'Unfolded folding chair',()=>{if(found.has(id))return;if(carrying>=3){notice('You can carry only 3 chairs. Return them to storage first.');return}found.add(id);carrying++;chime(520,.09,'square',.012);notice(`Chair folded! Carrying ${carrying}/3.`);ui()},'chair');
 function chairStorage(){if(!carrying){simple('Chair storage','SOUTH HALLWAY',`You have returned ${stored}/8 chairs. ${8-found.size} remain scattered around classrooms.`);return}stored+=carrying;carrying=0;addNote(`Chair duty: ${stored}/8 safely stored.`);chime(620,.14);notice(stored===8?'ALL EIGHT CHAIRS RETURNED! The hallway seems strangely grateful.':`Folding chairs returned: ${stored}/8.`);ui()}
 function bishopPuzzle(){if(!done.has('silver')){simple('Bishop’s office','LOCKED DOOR','The office is locked. The key upstairs is strangely tempting.');return}readBishop=true;dialog('An extremely important assignment','BISHOP’S OFFICE',`<p>On the desk is a granola bar and an official-looking note.</p><div class="mini-note">“Please put away ALL the folding chairs after activities.”<p>—The Bishop</p></div><p>${stored}/8 chairs have been returned. The bishop has underlined <strong>ALL</strong> three times.</p>`,[['I will do my duty',()=>{close();addNote('The bishop requested that ALL eight folding chairs be returned.')},true],['Close',close]])}
@@ -93,36 +87,48 @@ function interact(){if(modalOpen||mapOpen||ended)return;const p=near();if(p)p.ac
 function updateClock(){let m=41+Math.floor(elapsed/25);$('clock').textContent=(m>=60?'12:'+String(Math.min(59,m-60)).padStart(2,'0')+' AM':'11:'+String(m).padStart(2,'0')+' PM')}
 function ui(){let z=maps[player.f].zone[Math.floor(player.y/TILE)]?.[Math.floor(player.x/TILE)]||'Hallway';$('zone').textContent=player.f==='upstairs'?'Upstairs Landing':z;$('objective').textContent=done.size===5?'The warnings are complete. Reach either vestibule exit.':'Find clues from the movie’s five scripture stories.';$('score').textContent=`${done.size} / 5`;$('tasks').innerHTML=story.map((s,i)=>`<div class="task ${done.has(['lots','babel','silver','voice','rod'][i])?'done':''}">${done.has(['lots','babel','silver','voice','rod'][i])?'✓':'◇'} ${s}</div>`).join('');$('notes').innerHTML=notes.slice(0,7).map(s=>`<p>${s.replaceAll('&','&amp;').replaceAll('<','&lt;')}</p>`).join('');$('chairsStatus').textContent=`${stored}/8 returned · ${carrying}/3 carried`;$('status').textContent=player.f==='upstairs'?'Both stairs lead back to the hallway.':lotTriggered?'Don’t look back. Go west through the gym.':`Eight hidden chairs. ${Math.max(0,8-found.size)} not yet collected.`;updateClock()}
 // Render floor and walls to a bitmap cache. All art is loaded externally from assets/.
-function buildScene(level){const m=maps[level];let off=document.createElement('canvas');off.width=m.w*TILE;off.height=m.h*TILE;const c=off.getContext('2d');c.imageSmoothingEnabled=false;for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){if(!m.walk[y][x])continue;let type=m.ground[y][x], px=x*TILE,py=y*TILE;let artKey=type==='wood_texture'?'wood_texture':type==='classroom_texture'?'class_carpet':'hall_carpet';if(!img(c,artKey,px,py,TILE,TILE)) {c.fillStyle=artKey==='wood_texture'?'#a87b4d':'#777575';c.fillRect(px,py,TILE,TILE)}if(m.wall[y][x]){img(c,'wall_plain',px,py,TILE,TILE);c.fillStyle='#293336';c.fillRect(px,py+TILE-5,TILE,5)}}
-if(level==='main'){
- // gym dimensions x23..42,y23..41; horizontal halfcourt and top/bottom arcs
- c.strokeStyle='rgba(251,243,213,.88)';c.lineWidth=3;c.strokeRect(23.4*TILE,23.5*TILE,18.2*TILE,17.9*TILE);c.beginPath();c.moveTo(23.4*TILE,32.45*TILE);c.lineTo(41.6*TILE,32.45*TILE);c.stroke();c.beginPath();c.arc(32.5*TILE,32.45*TILE,2.4*TILE,0,2*Math.PI);c.stroke();
- c.strokeRect(29*TILE,23.5*TILE,7*TILE,4.5*TILE);c.strokeRect(29*TILE,36.9*TILE,7*TILE,4.5*TILE);
- c.beginPath();c.arc(32.5*TILE,28*TILE,5*TILE,0,Math.PI,false);c.stroke();c.beginPath();c.arc(32.5*TILE,36.9*TILE,5*TILE,Math.PI,2*Math.PI,false);c.stroke();
- // locked chapel remains dim from the hall; never open or navigate within it
- c.fillStyle='#090d12bd';c.fillRect(22*TILE,43*TILE,22*TILE,26*TILE);
- // warm lounge furniture exclusively in foyers, no couches in teaching rooms.
+
+function drawAtlas(c,im,col,row,ncols,sx,sy,sw,sh){if(!(im&&im.complete&&im.naturalWidth))return;c.drawImage(im,col*sw,row*sh,sw,sh,sx,sy,sw,sh)}
+function buildScene(level){const m=maps[level];let off=document.createElement('canvas');off.width=m.w*TILE;off.height=m.h*TILE;const c=off.getContext('2d');c.imageSmoothingEnabled=false;
+ if(level==='main'){
+  const floor=art.tiled_floor_tiles,obj=art.tiled_object_tiles;
+  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){
+   const i=y*m.w+x,fgid=DATA.floors[i],wgid=DATA.walls[i];
+   if(fgid){const n=(fgid&0x1fffffff)-1;drawAtlas(c,floor,n%4,Math.floor(n/4),4,x*TILE,y*TILE,32,32)}
+   if(wgid){const n=(wgid&0x1fffffff)-1;drawAtlas(c,floor,n%4,Math.floor(n/4),4,x*TILE,y*TILE,32,32)}
+  }
+  // Basketball markings follow the actual north–south court, laid over the tile art.
+  c.save();c.strokeStyle='rgba(255,244,213,.87)';c.lineWidth=2.5;
+  const a=25*TILE,b=34*TILE,cx=38*TILE,cy=47*TILE,ww=26*TILE,hh=26*TILE;
+  c.strokeRect(a,b,ww,hh);c.beginPath();c.moveTo(a,cy);c.lineTo(a+ww,cy);c.arc(cx,cy,3*TILE,0,2*Math.PI);c.stroke();
+  c.strokeRect(34*TILE,b,8*TILE,6*TILE);c.strokeRect(34*TILE,54*TILE,8*TILE,6*TILE);
+  c.beginPath();c.arc(cx,36*TILE,7*TILE,0,Math.PI,false);c.stroke();
+  c.beginPath();c.arc(cx,58*TILE,7*TILE,Math.PI,Math.PI*2,false);c.stroke();c.restore();
+  // Original furniture/door/artwork objects from the user's TMX.
+  for(const o of DATA.objects){const n=(o.gid&0x1fffffff)-17;if(n<0||n>=32)continue;
+   if(obj&&obj.complete&&obj.naturalWidth)c.drawImage(obj,(n%8)*64,Math.floor(n/8)*64,64,64,o.x*TILE,o.y*TILE,o.w*TILE,o.h*TILE);
+  }
  }else{
- // rug and center round-table
- c.fillStyle='#9b866e65';c.fillRect(7*TILE,4*TILE,16*TILE,9*TILE);
- c.fillStyle='#6a4530';c.beginPath();c.arc(15*TILE,8*TILE,2.5*TILE,0,2*Math.PI);c.fill();c.strokeStyle='#e4bd7c';c.lineWidth=7;c.stroke();
+  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){if(!m.walk[y][x])continue;let px=x*TILE,py=y*TILE;img(c,'class_carpet',px,py,TILE,TILE);if(m.wall[y][x])img(c,'wall_plain',px,py,TILE,TILE)}
+  c.fillStyle='#9b866e65';c.fillRect(7*TILE,4*TILE,16*TILE,9*TILE);c.fillStyle='#6a4530';c.beginPath();c.arc(15*TILE,8*TILE,2.5*TILE,0,Math.PI*2);c.fill();c.strokeStyle='#e4bd7c';c.lineWidth=7;c.stroke();
+  for(const [name,x,y,w,h] of deco.upstairs)img(c,name,x*TILE,y*TILE,w*TILE,h*TILE);
+  for(let i=0;i<30;i++){const a=i*Math.PI*2/30,r=(i%3+1)*17;img(c,'coin_stack',(15*TILE+Math.cos(a)*r)-8,(8*TILE+Math.sin(a)*r)-8,15,15,.9)}
  }
-for(const [name,x,y,w,h] of deco[level])img(c,name,x*TILE,y*TILE,w*TILE,h*TILE);
-if(level==='upstairs'){for(let i=0;i<30;i++){const a=i*Math.PI*2/30,r=(i%3+1)*17;img(c,'coin_stack',(15*TILE+Math.cos(a)*r)-8,(8*TILE+Math.sin(a)*r)-8,15,15,.9)}}
-return off}
-function propArt(c,p,now){const x=(p.x+.5)*TILE,y=(p.y+.5)*TILE,g=c.createRadialGradient(x,y,0,x,y,28);g.addColorStop(0,'#f6df9d7f');g.addColorStop(1,'#f6df9d00');c.fillStyle=g;c.fillRect(x-28,y-28,56,56);let kind=p.key;let dest={scripture:['scripture',30,26],note:['note',26,28],coins:['coin_stack',32,26],chair:['fold_chair',25,37],stack:['chair_stack',40,44],stairs:['stairs_up',50,43],door:['door_plain',28,42]}[kind];if(dest)img(c,dest[0],x-dest[1]/2,y-dest[2]/2,dest[1],dest[2]);else if(kind==='ball'){c.beginPath();c.arc(x,y+Math.sin(now/260)*3,11,0,Math.PI*2);c.fillStyle='#d19a53';c.fill();c.strokeStyle='#4e3526';c.lineWidth=2;c.stroke()}}
+ return off;
+}
+function propArt(c,p,now){const x=(p.x+.5)*TILE,y=(p.y+.5)*TILE,g=c.createRadialGradient(x,y,0,x,y,28);g.addColorStop(0,'#f6df9d7f');g.addColorStop(1,'#f6df9d00');c.fillStyle=g;c.fillRect(x-28,y-28,56,56);let kind=p.key;if(kind==='existing')return;let dest={scripture:['scripture',30,26],note:['note',26,28],coins:['coin_stack',32,26],chair:['fold_chair',25,37],stack:['chair_stack',40,44],stairs:['stairs_up',50,43],door:['door_plain',28,42]}[kind];if(dest)img(c,dest[0],x-dest[1]/2,y-dest[2]/2,dest[1],dest[2]);else if(kind==='ball'){c.beginPath();c.arc(x,y+Math.sin(now/260)*3,11,0,Math.PI*2);c.fillStyle='#d19a53';c.fill();c.strokeStyle='#4e3526';c.lineWidth=2;c.stroke()}}
 function render(now){if(!sceneCache[player.f])sceneCache[player.f]=buildScene(player.f);const m=maps[player.f],view=sceneCache[player.f],cw=canvas.width,ch=canvas.height;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);ctx.fillStyle='#05090c';ctx.fillRect(0,0,cw,ch);const scale=mapOpen?Math.min(cw/view.width,ch/view.height)*.94:Math.max(cw/(TILE*23),ch/(TILE*17));const centerX=mapOpen?view.width/2:player.x,centerY=mapOpen?view.height/2:player.y;const offsetX=cw/2-centerX*scale,offsetY=ch/2-centerY*scale;ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);ctx.imageSmoothingEnabled=false;ctx.drawImage(view,0,0);
 for(const p of props)if(p.f===player.f&&!(p.id.startsWith('chair-')&&found.has(p.id.slice(6))))propArt(ctx,p,now);
 for(const g of ghosts)if(g.f===player.f){ctx.globalAlpha=Math.min(.8,g.life/1.6*.7);drawSprite(ctx,art.ghost_walk,2,4,Math.floor(now/350)%2,g.variant,g.x,g.y,36,48);ctx.globalAlpha=1}
 drawSprite(ctx,art.player_walk,3,4,Math.floor(player.walk)%3,player.face==='down'?0:player.face==='left'?1:player.face==='right'?2:3,player.x,player.y,33,47);
-if(mapOpen){ctx.fillStyle='#f6e0ae';ctx.font='bold 27px system-ui';ctx.textAlign='center';for(const [x,y,label] of (player.f==='main'?[[11,8,'RELIEF SOCIETY'],[55,8,'PRIMARY'],[11,22,'KITCHEN'],[32,32,'GYM'],[32,56,'CHAPEL LOCKED'],[15,43,'W FOYER'],[51,43,'E FOYER'],[55,74,'BISHOP']]:[[15,4,'UPSTAIRS LANDING']]))ctx.fillText(label,x*TILE,y*TILE)}ctx.restore();
+if(mapOpen){ctx.fillStyle='#f6e0ae';ctx.font='bold 27px system-ui';ctx.textAlign='center';for(const [x,y,label] of (player.f==='main'?[[9,12,'RELIEF SOCIETY'],[66,12,'PRIMARY'],[8,33,'KITCHEN'],[38,47,'GYM'],[38,71,'CHAPEL LOCKED'],[8,59,'W FOYER'],[69,59,'E FOYER'],[69,98,'BISHOP']]:[[15,4,'UPSTAIRS LANDING']]))ctx.fillText(label,x*TILE,y*TILE)}ctx.restore();
 if(!mapOpen){const fog=ctx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.12,cw/2,ch/2,Math.max(cw,ch)*.8);fog.addColorStop(0,'#00000000');fog.addColorStop(1,'#000000aa');ctx.fillStyle=fog;ctx.fillRect(0,0,cw,ch)}if(flash>0){ctx.fillStyle=`rgba(240,247,241,${flash})`;ctx.fillRect(0,0,cw,ch)}$('prompt').textContent=mapOpen?'MAP — Press M to return':near()?'E / Space · '+near().label:(player.f==='upstairs'?'The two stairs lead back down':'Explore classrooms and corridors · E / Space interacts')}
 function drawSprite(c,im,cols,rows,col,row,x,y,w,h){if(!(im&&im.complete&&im.naturalWidth))return;const fw=im.width/cols,fh=im.height/rows;c.drawImage(im,col*fw,row*fh,fw,fh,x-w/2,y-h+8,w,h)}
 const held=new Set();function passable(x,y){const m=maps[player.f],tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);return tx>=0&&ty>=0&&tx<m.w&&ty<m.h&&m.walk[ty][tx]&&!m.wall[ty][tx]}
-function movePlayer(dx,dy,dt){let speed=held.has('shift')?180:125,amt=speed*dt,rad=7;let oldX=player.x,oldY=player.y;if([[-rad,-rad],[rad,rad],[-rad,rad],[rad,-rad]].every(([a,b])=>passable(player.x+dx*amt+a,player.y+b)))player.x+=dx*amt;if([[-rad,-rad],[rad,rad],[-rad,rad],[rad,-rad]].every(([a,b])=>passable(player.x+a,player.y+dy*amt+b)))player.y+=dy*amt;if(player.x!==oldX||player.y!==oldY){player.face=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');player.walk+=dt*9;if(lotTriggered&&!done.has('lots')&&player.f==='main'){if(player.face==='right'){lotTriggered=false;lotRun=false;player.x=33*TILE;player.y=34*TILE;notice('YOU LOOKED BACK. The room shudders. Try again.');flash=.6;shake=5}else if(maps.main.zone[Math.floor(player.y/TILE)][Math.floor(player.x/TILE)]!=='Gym'){lotTriggered=false;lotRun=false;success('lots','Genesis 19 — You escaped the gym without looking back.')}}}}
+function movePlayer(dx,dy,dt){let speed=held.has('shift')?180:125,amt=speed*dt,rad=7;let oldX=player.x,oldY=player.y;if([[-rad,-rad],[rad,rad],[-rad,rad],[rad,-rad]].every(([a,b])=>passable(player.x+dx*amt+a,player.y+b)))player.x+=dx*amt;if([[-rad,-rad],[rad,rad],[-rad,rad],[rad,-rad]].every(([a,b])=>passable(player.x+a,player.y+dy*amt+b)))player.y+=dy*amt;if(player.x!==oldX||player.y!==oldY){player.face=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');player.walk+=dt*9;if(lotTriggered&&!done.has('lots')&&player.f==='main'){if(player.face==='right'){lotTriggered=false;lotRun=false;player.x=38*TILE;player.y=45*TILE;notice('YOU LOOKED BACK. The room shudders. Try again.');flash=.6;shake=5}else if(maps.main.ground[Math.floor(player.y/TILE)]?.[Math.floor(player.x/TILE)]!=='wood_texture'){lotTriggered=false;lotRun=false;success('lots','Genesis 19 — You escaped the gym without looking back.')}}}}
 function frame(now){const dt=Math.min(.045,(now-last)/1000||.016);last=now;if(!modalOpen&&!mapOpen&&!ended){let dx=Number(held.has('arrowright')||held.has('d'))-Number(held.has('arrowleft')||held.has('a')),dy=Number(held.has('arrowdown')||held.has('s'))-Number(held.has('arrowup')||held.has('w'));if(dx||dy){const mag=Math.hypot(dx,dy);movePlayer(dx/mag,dy/mag,dt)}elapsed+=dt;ghostTimer+=dt;if(ghostTimer>10+Math.random()*4){ghostTimer=0;if(Math.random()<.85){let a=Math.random()*Math.PI*2,r=115+Math.random()*80;ghosts.push({f:player.f,x:player.x+Math.cos(a)*r,y:player.y+Math.sin(a)*r,life:2.2,variant:Math.floor(Math.random()*4)});chime(130,.22,'triangle',.01)}}for(const g of ghosts)g.life-=dt;ghosts=ghosts.filter(g=>g.life>0);flash=Math.max(0,flash-dt*1.3);shake*=.87}render(now);if(Math.floor(now/900)!==Math.floor((now-dt*1000)/900))ui();requestAnimationFrame(frame)}
-function reset(){done.clear();found.clear();notes.length=0;notes.push('11:41 PM · We went back to the church. Someone is still here.');carrying=0;stored=0;readBishop=false;player.f='main';player.x=7.5*TILE;player.y=45.5*TILE;player.face='right';player.walk=0;ended=false;lotRun=false;lotTriggered=false;ghosts=[];mapOpen=false;elapsed=0;close();ui();intro()}
-function intro(){dialog('THE LAST AMEN','CHAPEL AFTER DARK · V4.1','<p>You returned to the meetinghouse to investigate the boys who vanished. A basketball bounces where no one is playing.</p><p>Explore the rooms, solve five scripture challenges from the film, and escape. Somewhere in the building, eight folding chairs await a hero.</p><p><strong>Controls:</strong> WASD / arrows to move; E or Space to interact; M to view map; J for journal. Both north-hall stairs lead to the same separate upstairs landing.</p><p>The chapel stays locked and inaccessible out of respect.</p>',[['Begin exploring',()=>{close();notice('The exterior doors lock with a heavy click.');chime(140,.3)},true]])}
+function reset(){done.clear();found.clear();notes.length=0;notes.push('11:41 PM · We went back to the church. Someone is still here.');carrying=0;stored=0;readBishop=false;player.f='main';player.x=72.5*TILE;player.y=61.5*TILE;player.face='left';player.walk=0;ended=false;lotRun=false;lotTriggered=false;ghosts=[];mapOpen=false;elapsed=0;close();ui();intro()}
+function intro(){dialog('THE LAST AMEN','CHAPEL AFTER DARK · V5.0 — TILED MAP','<p>You returned to the meetinghouse to investigate the boys who vanished. A basketball bounces where no one is playing.</p><p>Explore the rooms, solve five scripture challenges from the film, and escape. Somewhere in the building, eight folding chairs await a hero.</p><p><strong>Controls:</strong> WASD / arrows to move; E or Space to interact; M to view map; J for journal. Both stairs lead to the separate upstairs landing. This layout comes from your edited Tiled map.</p><p>The chapel stays locked and inaccessible out of respect.</p>',[['Begin exploring',()=>{close();notice('The exterior doors lock with a heavy click.');chime(140,.3)},true]])}
 function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.max(160,Math.round(r.width*d));canvas.height=Math.max(160,Math.round(r.height*d))}window.addEventListener('resize',resize);resize();
 window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(modalOpen){if(modalMove&&k.startsWith('arrow'))modalMove(k.slice(5));if(k==='escape')close();return}if(k==='e'||k===' '){if(!e.repeat)interact();return}if(k==='m'){mapOpen=!mapOpen;return}if(k==='j'){simple('Field journal','CLUES DISCOVERED',notes.join('<hr>'));return}held.add(k)});window.addEventListener('keyup',e=>held.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>held.clear());
 $('use').onclick=interact;$('useTouch').onclick=interact;$('map').onclick=()=>{if(!modalOpen)mapOpen=!mapOpen};$('journalBtn').onclick=()=>simple('Field journal','CLUES',notes.join('<hr>'));$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'♫ Sound on':'♫ Sound off'};$('restart').onclick=()=>{if(confirm('Restart the story and clear all progress?'))reset()};for(const b of document.querySelectorAll('[data-dir]')){let k='arrow'+b.dataset.dir;b.addEventListener('pointerdown',e=>{e.preventDefault();held.add(k);b.setPointerCapture(e.pointerId)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>held.delete(k))}
